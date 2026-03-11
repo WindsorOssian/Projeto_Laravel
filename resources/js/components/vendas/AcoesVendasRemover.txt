@@ -1,0 +1,68 @@
+<script setup lang="ts">
+import { router } from '@inertiajs/vue3'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
+import DialogClose from '@/components/ui/dialog/DialogClose.vue'
+import { Trash2 } from 'lucide-vue-next'
+import LoadingOverlay from '@/components/ui/LoadingOverlay.vue'
+import { ref } from 'vue'
+import vendas from '@/routes/vendas'
+
+const loading = ref(false)
+
+const props = defineProps<{
+    venda: {
+        id: number
+        cliente: string
+    }
+}>()
+
+const venda = props.venda
+
+function removerVenda() {
+    router.delete(vendas.remove(venda.id), {
+        onSuccess: () => console.log('Venda removida'),
+        onError: (e) => console.error(e),
+        onFinish: () => (loading.value = false),
+    })
+}
+
+function abrirLoop() {
+    loading.value = true
+}
+</script>
+
+<template>
+    <LoadingOverlay :show="loading" />
+
+    <Dialog>
+        <DialogTrigger>
+            <Button class="bg-red-600 text-white hover:bg-red-700 border-none px-4">
+                <Trash2 class="w-4 h-4 mr-2" />
+                Remover
+            </Button>
+        </DialogTrigger>
+
+        <DialogContent>
+            <span>
+                Tem certeza que deseja remover a venda do cliente:
+                <br />
+                <strong>{{ venda.cliente }}</strong>
+            </span>
+
+            <div class="flex justify-end gap-2 mt-4">
+                <Button
+                    class="bg-red-600 text-white hover:bg-red-700 border-none px-4"
+                    @click.prevent="() => { abrirLoop(); removerVenda() }"
+                >
+                    <Trash2 class="w-4 h-4 mr-2" />
+                    Confirmar
+                </Button>
+
+                <DialogClose>
+                    <Button>Cancelar</Button>
+                </DialogClose>
+            </div>
+        </DialogContent>
+    </Dialog>
+</template>

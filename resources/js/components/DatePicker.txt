@@ -1,0 +1,84 @@
+<script setup lang="ts">
+import {
+    CalendarDate,
+    getLocalTimeZone,
+    parseDate,
+    today,
+} from '@internationalized/date';
+import { ref, watch } from 'vue';
+
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/Calendar.vue';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import Icon from '@/components/Icon.vue';
+
+const props = defineProps<{
+    modelValue: string;
+    placeholder?: string;
+    disabled?: boolean;
+
+}>();
+
+const emit = defineEmits<{
+    (e: 'update:modelValue', value: string): void;
+}>();
+
+const calendarDate = ref<CalendarDate | undefined>(
+    props.modelValue ? parseDate(props.modelValue) : undefined,
+);
+
+const defaultPlaceholder = today(getLocalTimeZone());
+
+watch(
+    () => props.modelValue,
+    (value) => {
+        calendarDate.value = value ? parseDate(value) : undefined;
+    },
+);
+
+watch(calendarDate, (value) => {
+    emit('update:modelValue', value ? value.toString() : '');
+});
+</script>
+
+<template>
+    <Popover>
+        <PopoverTrigger as-child>
+            <Button
+                variant="outline"
+                :disabled="disabled"
+                :class="
+                    cn(
+                        'w-full justify-start text-left font-normal',
+                        !calendarDate && 'text-muted-foreground',
+                    )
+                "
+            >
+                <Icon name="calendar" class="mr-2 h-4 w-4" />
+
+                {{
+                    calendarDate
+                        ? calendarDate
+                              .toDate(getLocalTimeZone())
+                              .toLocaleDateString()
+                        : (placeholder ?? 'Pick a date')
+                }}
+            </Button>
+        </PopoverTrigger>
+
+        <PopoverContent class="w-auto p-0">
+            <Calendar
+                v-model="calendarDate"
+                :default-placeholder="defaultPlaceholder"
+                locale="pt-BR"
+                :initial-focus="true"
+                layout="month-and-year"
+            />
+        </PopoverContent>
+    </Popover>
+</template>
